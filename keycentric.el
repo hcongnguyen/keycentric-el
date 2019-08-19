@@ -53,39 +53,33 @@
 
 KEY: either a vector of key sequence or a string (which will be fed to the `kbd' function).
 FUN: the function symbol/lambda form to be mapped to the key."
-  (cl-loop with key-arg = nil
-           with key = nil
-           for form in mapping-list do
-           (progn
-             (setf key-arg (pop form)
-                   key (cond ((vectorp key-arg) key-arg)
-                             ((stringp key-arg) (kbd key-arg))
-                             (t (user-error "Wrong argument's datatype: KEY (%s) is of type `%s' instead of type vector or string!" key-arg (type-of key-arg))))
-                   )
-             (cl-loop with package = nil
-                      for package-form in form do
-                      (progn
-                        (setf package (pop package-form))
-                        (cl-loop with map-symbol = nil
-                                 with map = nil
-                                   with fun = nil
-                                   for binding-form in package-form do
-                                   (setf map-symbol (pop binding-form)
-                                         fun binding-form)
-                                   (setf map (when (boundp map-symbol)
-                                               (symbol-value map-symbol)))
-                                   (cond
-                                    ((keymapp map) (define-key map key fun))
-                                    ((null (featurep package))
-                                     (with-eval-after-load package
-                                       (setf map (when (boundp map-symbol)
-                                                   (symbol-value map-symbol)))
-                                       (if (keymapp map)
-                                           (define-key map key fun)
-                                         (user-error "feature loaded but no such keymap: `%s'" map-symbol))))
-                                    (t (user-error "Unhandled case: package (already loaded) `%s', map `%s'"
-                                                   package
-                                                   map)))))))))
+  (let (key-arg key form package-form binding-form
+                map-symbol map fun)
+      (while (car mapping-list)
+        (setf form (pop mapping-list)
+              key-arg (pop form)
+              key (cond ((vectorp key-arg) key-arg)
+                        ((stringp key-arg) (kbd key-arg))
+                        (t (user-error "Wrong argument's datatype: KEY (%s) is of type `%s' instead of type vector or string!" key-arg (type-of key-arg))))
+              )
+          (while (car form)
+            (setf package-form (pop form)
+                  package (pop package-form))
+            (while (car package-form)
+              (setf binding-form (pop package-form)
+                    map-symbol (pop binding-form)
+                    fun binding-form
+                    map (when (boundp map-symbol)
+                          (symbol-value map-symbol)))
+              (cond
+               ((keymapp map) (define-key map key fun))
+               ((null (featurep package))
+                (eval-after-load package
+                  `(let ((map (when (boundp ',map-symbol) (symbol-value ',map-symbol))))
+                    (if (keymapp map)
+                        (define-key map ,key ,fun)
+                      (user-error "feature loaded but no such keymap: `%s'" ',map-symbol)))))
+               (t (user-error "Package `%s' has already been loaded but no such keymap `%s'!" ,package map))))))))
 
 
 (provide 'keycentric)
