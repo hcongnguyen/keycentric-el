@@ -53,8 +53,15 @@
 
 KEY: either a vector of key sequence or a string (which will be fed to the `kbd' function).
 FUN: the function symbol/lambda form to be mapped to the key."
-  (let (key-arg key form package-form binding-form
-                map-symbol map fun)
+  (let (key-arg
+        key
+        form
+        package-form
+        binding-form
+        map-symbol
+        map
+        package-symbol
+        fun-symbol)
       (while (car mapping-list)
         (setf form (pop mapping-list)
               key-arg (pop form)
@@ -64,22 +71,22 @@ FUN: the function symbol/lambda form to be mapped to the key."
               )
           (while (car form)
             (setf package-form (pop form)
-                  package (pop package-form))
+                  package-symbol (pop package-form))
             (while (car package-form)
               (setf binding-form (pop package-form)
                     map-symbol (pop binding-form)
-                    fun binding-form
+                    fun-symbol binding-form
                     map (when (boundp map-symbol)
                           (symbol-value map-symbol)))
               (cond
-               ((keymapp map) (define-key map key fun))
-               ((null (featurep package))
-                (eval-after-load package
+               ((keymapp map) (define-key map key fun-symbol))
+               ((null (featurep package-symbol))
+                (eval-after-load package-symbol
                   `(let ((map (when (boundp ',map-symbol) (symbol-value ',map-symbol))))
                     (if (keymapp map)
-                        (define-key map ,key ,fun)
+                        (define-key map ,key ',fun-symbol)
                       (user-error "feature loaded but no such keymap: `%s'" ',map-symbol)))))
-               (t (user-error "Package `%s' has already been loaded but no such keymap `%s'!" ,package map))))))))
+               (t (user-error "Package `%s' has already been loaded but no such keymap `%s'!" ,package-symbol map))))))))
 
 
 (provide 'keycentric)
