@@ -1,7 +1,7 @@
 
 # Table of Contents
 
-1.  [keycentric.el &#x2014 Define keys for **all** keymaps all at once](#org85fcd19)
+1.  [keycentric.el - Define keys for **all** keymaps all at once](#org85fcd19)
 2.  [Examples](#org29bae9c)
 3.  [References](#orgeebdcb1)
 
@@ -9,7 +9,7 @@
 
 <a id="org85fcd19"></a>
 
-# keycentric.el &#x2014 Define keys for **all** keymaps all at once
+# keycentric.el - Define keys for **all** keymaps all at once
 
 In my Emacs keymapping, a single key usually does the same thing in several mode-specific maps, yet it is defined all over the place (under each mode-specific settings). I also love to s(eval-when-compile (eval-when-compile ((((  ))))ort my key mapping (to avoid duplicate keymaps which has got me some times).
 
